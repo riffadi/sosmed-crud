@@ -3,7 +3,7 @@ from django import forms
 from .models import Instagram
 
 class InstagramForm(forms.ModelForm):
-	class meta:
+	class Meta:
 		model = Instagram
 		fields = [
 			'first_name',
