@@ -1,12 +1,12 @@
 from django import forms
 
-from .models import Insstagram
+from .models import Instagram
 
 class InstagramForm(forms.ModelForm):
 	class meta:
 		model = Instagram
 		fields = [
-			'nama_belakang',
-			'nama_depan',
+			'first_name',
+			'last_name',
 			'username',
 		]

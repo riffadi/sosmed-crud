@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}
+	{{ page_title }}
+{% endblock title %}
+
+{% block contents %}
+	<p>{{ page_title }}</p>
+
+	<table class="table">
+	  <thead class="thead-light">
+	    <tr>
+	      <th scope="col">#</th>
+	      <th scope="col">First</th>
+	      <th scope="col">Last</th>
+	      <th scope="col">Username</th>
+	    </tr>
+	  </thead>
+	  <tbody>
+	  	{% for account in all_account  %}
+		    <tr>
+		      <th scope="row">1</th>
+		      <td>{{ account.first_name }}</td>
+		      <td>{{ account.last_name }}</td>
+		      <td>{{ account.username }}</td>
+		    </tr>
+	  	{% endfor %}
+	  </tbody>
+	</table>
+	<a class="btn btn-primary" href="{% url 'sosmed:create' %}">Add</a>
+{% endblock contents %}
