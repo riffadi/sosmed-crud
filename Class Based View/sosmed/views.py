@@ -1,63 +1,70 @@
 from django.shortcuts import render, redirect
+from django.views.generic import TemplateView, RedirectView, View
 
 from .models import Instagram
 from .forms import InstagramForm
 
+class SosmedSubList:
+	def get_list_data(self, get_request):
+		if len(get_request) == 0:
+			sublist = Instagram.objects.all()
+		elif get_request.__contains__('content_filter'):
+			sublist = Instagram.objects.filter(content = get_request['content_filter'])
+		else:
+			sublist = Instagram.objects.none()
+		return sublist
 
-def update(request, update_id):
-	account_update = Instagram.objects.get(id=update_id)
-	
-	data = {
-		'first_name' : account_update.first_name,
-		'last_name' : account_update.last_name,
-		'username' : account_update.username,
-	}
+class SosmedListView(SosmedSubList, TemplateView):
+	template_name = 'sosmed/list.html'
 
-	account_form = InstagramForm(request.POST or None, initial=data, instance=account_update)
+	def get_context_data(self, *args, **kwargs):
+		list_account = self.get_list_data(self.request.GET)
+		list_content = Instagram.objects.values_list('content', flat=True).distinct()
+		context = {
+			'page_title' : 'Social Media using Class-based View',
+			'all_account' : list_account,
+			'list_content' : list_content,
+		}
+		return context
 
-	if request.method == 'POST':
-		if account_form.is_valid():
-			account_form.save()
+class SosmedDeleteView(RedirectView):
+	pattern_name = 'sosmed:list'
 
-		return redirect('sosmed:list')
+	def get_redirect_url(self, *args, **kwargs):
+		delete_id = kwargs['delete_id']
+		Instagram.objects.filter(id=delete_id).delete()
+		return super().get_redirect_url()
 
-	context = {
-			"page_title" : "Update Account",
-			"account_form" : account_form,
-	}
+class SosmedFormView(View):
+	template_name = 'sosmed/create.html'
+	form = InstagramForm()
+	mode = None
+	context = {}
 
-	return render(request, 'sosmed/create.html', context)
-
-
-def delete(request,delete_id):
-	Instagram.objects.filter(id=delete_id).delete()
-
-	return redirect('sosmed:list')	
-
-
-def create(request):
-	account_form = InstagramForm(request.POST or None)
-
-	if request.method == 'POST':
-		if account_form.is_valid():
-			account_form.save()
-
-		return redirect('sosmed:list')
-
-	context = {
+	def get(self, *arrgs, **kwargs):
+		if self.mode == 'update':
+			account_update = Instagram.objects.get(id=kwargs['update_id'])
+			data = account_update.__dict__
+			print(data)
+			self.form = InstagramForm(initial=data, instance=account_update)
+		
+		
+		self.context =  {
 			"page_title" : "Add Account",
-			"account_form" : account_form,
-	}
+			"account_form" : self.form,
+		}
+		return render(self.request, self.template_name, self.context)
 
-	return render(request, 'sosmed/create.html', context)
+	def post(self, *args, **kwargs):
+		if kwargs.__contains__('update_id'):
+			account_update = Instagram.objects.get(id=kwargs['update_id'])
+			self.form = InstagramForm(self.request.POST, instance=account_update)
+		else:
+			self.form = InstagramForm(self.request.POST)
+
+		if self.form.is_valid():
+			self.form.save()
+
+		return redirect('sosmed:list')
 
 
-def list(request):
-	all_account = Instagram.objects.all()
-
-	context = {
-	'page_title' : 'Social Media',
-	'all_account' : all_account,
-	}
-
-	return render(request, 'sosmed/list.html', context)

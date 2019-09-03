@@ -9,4 +9,4 @@ class InstagramForm(forms.ModelForm):
 			'first_name',
 			'last_name',
 			'username',
-		]
+			'content',		]
